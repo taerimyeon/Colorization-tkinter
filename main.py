@@ -26,6 +26,8 @@ class Paint:
     penColor = 'yellow'  # Default brush color
     H = 265  # Canvas height (fixed)
     W = 320  # Canvas width (fixed)
+    imX = 0  # Real image size - X (initialization)
+    imY = 0  # Real image size - Y (initialization)
     
     def __init__(self):
         self.root = tk.Tk()
@@ -117,6 +119,7 @@ class Paint:
         if self.filename:
             size = (self.W, self.H)
             imgFile = Image.open(self.filename)
+            self.imX, self.imY = imgFile.size
             resized = imgFile.resize(size, Image.ANTIALIAS)
             self.gI = resized  # gI = original image, resized to fit canvas
             self.gI = np.array(self.gI)/255.0  # normalize to 0-1
@@ -139,6 +142,7 @@ class Paint:
         if filenameSave:
             # ImageGrab doesn't work well on scaled screen
             img = ImageGrab.grab((x, y, x1, y1))
+            img = img.resize((self.imX, self.imY), Image.ANTIALIAS)
             filenameSave = filenameSave[:-4]+"_marked.bmp"  # Append _marked
             img.save(filenameSave)
         else:
@@ -194,6 +198,7 @@ class Paint:
                                                         ("all files", "*.*")))
         if filenameSave:
             img = ImageGrab.grab((x, y, x1, y1))
+            img = img.resize((self.imX, self.imY), Image.ANTIALIAS)
             filenameSave = filenameSave[:-4]+"_result.bmp"  # Append _result
             img.save(filenameSave)
         else:
