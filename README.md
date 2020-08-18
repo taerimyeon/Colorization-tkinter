@@ -17,6 +17,10 @@ The following is a list of Python libraries you have to install:
    
 You will need to have a C compiler installed on your system, please refer to this [page](https://cython.readthedocs.io/en/latest/src/quickstart/install.html) for Cython setup. In my system, I used Windows 10 x64 with Visual Studio 2015 C/C++ Compiler installed.  
    
+## Changelog
+- 2020/08/18 Added recoloring comments and credits in `main.py`. [cyz14](https://github.com/cyz14/Colorization) for main colorization algorithm and [abhishek305](https://github.com/abhishek305/ProgrammingKnowlegde-Tkinter-Series) for main TkInter painting.
+- 2020/01/11 Added working files.
+   
 ## Usage
 ### Building Cython Files
 If you have a Windows x64 system with Python version 3.6, you can just run `main.py` (I have provided built Cython files). In other case, you need yo build it yourself by `cd` to the root (this repository folder), open command prompt and type:  
