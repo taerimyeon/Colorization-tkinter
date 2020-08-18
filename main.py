@@ -2,7 +2,16 @@
 """
 Created on Wed Dec 25 16:17:22 2019
 
-@author: Steven Jonathan (github: tttdddstvn)
+@author: Steven Jonathan (GitHub: taerimyeon)
+
+Implemented with the help on cyz14's GitHub for colorization in Python (I then
+optimized into Cython for faster performance on weight matrix building), and
+TkInter painting was extended from abhishek305's GitHub.
+
+GitHub references:
+    https://github.com/cyz14/Colorization --> Main colorization algorithm.
+    https://github.com/abhishek305/ProgrammingKnowlegde-Tkinter-Series --> For
+    TkInter painting reference (10th folder in that repository)
 """
 
 
@@ -81,7 +90,7 @@ class Paint:
         self.clearCanvas.grid(row=5, column=3, columnspan=2)
         
         self.saveSketch = tk.Button(self.root, text='Save Sketch',
-                                     command=self.saveSketchDia,
+                                     command=self.saveSketchDialog,
                                      height=1, width=12)
         self.saveSketch.grid(row=5, column=5, columnspan=2)
         
@@ -91,7 +100,7 @@ class Paint:
         self.colorizeButton.grid(row=5, column=7, columnspan=2)
         
         self.saveColorized = tk.Button(self.root, text='Save Colorized',
-                                       command=self.saveColorizedDia,
+                                       command=self.saveColorizedDialog,
                                        height=1, width=12)
         self.saveColorized.grid(row=5, column=9, columnspan=2)
         # Define button(s) ====================================================
@@ -128,7 +137,7 @@ class Paint:
             self.c.create_image(0, 0, image=self.img, anchor=tk.NW, tags="IM2")
             self.fromBrowse = True
     
-    def saveSketchDia(self):
+    def saveSketchDialog(self):
         x = self.root.winfo_rootx()+self.c.winfo_x()
         y = self.root.winfo_rooty()+self.c.winfo_y()
         x1 = x+self.c.winfo_width()
@@ -140,7 +149,8 @@ class Paint:
                                                         ("jpg files", "*.jpg"),
                                                         ("all files", "*.*")))
         if filenameSave:
-            # ImageGrab doesn't work well on scaled screen
+            # ImageGrab doesn't work well on scaled screen, use 100% scaling
+            # instead.
             img = ImageGrab.grab((x, y, x1, y1))
             img = img.resize((self.imX, self.imY), Image.ANTIALIAS)
             filenameSave = filenameSave[:-4]+"_marked.bmp"  # Append _marked
@@ -159,17 +169,22 @@ class Paint:
         rows, cols = self.cI.shape[0], self.cI.shape[1]
         for r in range(rows):
             for c in range(cols):
-                # If a pixel(m, n) in all channels == 1 use gI otherwise cI
+                # If a pixel(m, n) in all channels == 1 (a normalized value
+                # from 255) use gI (original img) otherwise cI (marked image).
+                # This means when we give white brush over the drawing canvas,
+                # then we will preserve the original colors (from self.gI).
+                # This simple modification enables us to do recolorize.
                 if all(self.cI[r,c]==1):
-                    copycI[r,c] = self.gI[r,c]
+                    # If white color detected across all color channels..
+                    copycI[r,c] = self.gI[r,c]  # Copy color info from original
                 else:
-                    copycI[r,c] = self.cI[r,c]
+                    copycI[r,c] = self.cI[r,c]  # Copy color info from marked
         
         # Compute difference image to find the marked pixels
         colorIm = (np.sum(abs(self.gI-self.cI), axis=2) > 0.01)
         sgI = rgb2ntsc(self.gI)  # ntsc here is YUV color space
-        #scI = rgb2ntsc(self.cI)
-        scopycI = rgb2ntsc(copycI)
+        #scI = rgb2ntsc(self.cI)  # Use the modified copycI instead of this
+        scopycI = rgb2ntsc(copycI)  # ntsc here is YUV color space
         
         ntscIm = np.zeros_like(sgI)
         ntscIm[:, :, 0] = sgI[:,:,0]
@@ -185,7 +200,7 @@ class Paint:
         self.c1.delete("all")
         self.c1.create_image(0, 0, image=self.img2, anchor=tk.NW, tags="IM3")
     
-    def saveColorizedDia(self):
+    def saveColorizedDialog(self):
         x = self.root.winfo_rootx()+self.c1.winfo_x()
         y = self.root.winfo_rooty()+self.c1.winfo_y()
         x1 = x+self.c1.winfo_width()
